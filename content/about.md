@@ -4,11 +4,11 @@ description: 信朴科技（Xomaps）技术团队与其点位管理系统的公�
 comments: false
 ---
 
-## 信朴科技（Xomaps®）
+## 信朴科技（Xomaps）
 
-信朴科技专注户外广告点位的数字化管理。核心产品 **Xomaps®** 把点位（广告位）资源、客户订单、合同与财务单据统一到一套多租户中台里管理。
+信朴科技专注户外广告点位的数字化管理。核心产品 **Xomaps** 把点位（广告位）资源、客户订单、合同与财务单据统一到一套多租户中台里管理。
 
-官网：[www.omaps.cn](https://www.omaps.cn)
+官网：[www.xomaps.com](https://www.xomaps.com)
 
 ## 这个博客
 
@@ -22,5 +22,5 @@ comments: false
 
 ## 联系
 
-- 官网：[www.omaps.cn](https://www.omaps.cn)
+- 官网：[www.xomaps.com](https://www.xomaps.com)
 - GitHub：[github.com/xomaps](https://github.com/xomaps)

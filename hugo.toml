@@ -1,5 +1,5 @@
-baseURL = "https://blog.omaps.cn/"
-title = "信朴科技 Xomaps®"
+baseURL = "https://blog.xomaps.com/"
+title = "信朴科技 Xomaps"
 theme = "roadster"
 
 defaultContentLanguage = "zh-cn"
@@ -32,13 +32,13 @@ enableGitInfo = false
   [languages.zh-cn]
     label = "中文"
     weight = 1
-    title = "信朴科技 Xomaps®"
+    title = "信朴科技 Xomaps"
     [languages.zh-cn.params]
-      description = "信朴科技（Xomaps®）团队技术博客：点位管理系统、多租户中台、API 治理与工程实践。"
+      description = "信朴科技（Xomaps）团队技术博客：点位管理系统、多租户中台、API 治理与工程实践。"
   [languages.en]
     label = "English"
     weight = 2
-    title = "Xomaps® Tech Blog"
+    title = "Xomaps Tech Blog"
     [languages.en.params]
       description = "Xomaps team engineering blog: outdoor-advertising spot management, multi-tenant platform, API governance and engineering practice."
     [languages.en.params.logo]
@@ -60,11 +60,11 @@ enableGitInfo = false
         weight = 30
       [[languages.en.menu.main]]
         name = "Website"
-        url = "https://www.omaps.cn"
+        url = "https://www.xomaps.com"
         weight = 40
       [[languages.en.menu.footer]]
-        name = "Website www.omaps.cn"
-        url = "https://www.omaps.cn"
+        name = "Website www.xomaps.com"
+        url = "https://www.xomaps.com"
         weight = 10
       [[languages.en.menu.footer]]
         name = "GitHub"
@@ -72,8 +72,8 @@ enableGitInfo = false
         weight = 20
 
 [params]
-  description = "信朴科技（Xomaps®）团队技术博客：点位管理系统、多租户中台、API 治理与工程实践。"
-  copyright = "信朴科技（Xomaps®）"
+  description = "信朴科技（Xomaps）团队技术博客：点位管理系统、多租户中台、API 治理与工程实践。"
+  copyright = "信朴科技（Xomaps）"
   opengraph = true
   twitter_cards = false
   readmore = true
@@ -89,7 +89,7 @@ enableGitInfo = false
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 '''
-  # 百度统计：沿用官网 www.omaps.cn 的站点 id（用户决定，两站数据合并统计）。
+  # 百度统计：沿用官网 www.xomaps.com 的站点 id（用户决定，两站数据合并统计）。
   # 留空则不输出任何统计脚本；本地 hugo server 预览也自动不输出。
   baiduTongjiId = "91d1ed7b8e9f57cc6d6af12e7feed6ed"
   # Google Fonts 已在 layouts/_partials/head/gfonts.html 中整体关闭
@@ -100,11 +100,11 @@ enableGitInfo = false
   [params.logo]
     subtitle = "AI 原生研发与工程实践"
 
-  # Waline 评论与浏览量。后端已迁 Cloudflare Workers + D1（社区实现 Waline_On_Worker，
-  # 源码在本地 xomaps/waline-on-worker，部署 npx wrangler deploy），不再依赖公司服务器容器。
+  # Waline 评论与浏览量。后端为 Cloudflare Workers + D1（社区实现 Waline_On_Worker，
+  # 源码在本地 xomaps/waline-on-worker，部署 npx wrangler deploy），自定义域 waline.xomaps.com。
   # 客户端 JS/CSS 仍自托管在 static/waline/（禁引境外 CDN）。
   [params.waline]
-    serverURL = "https://waline.jokeway.workers.dev"
+    serverURL = "https://waline.xomaps.com"
 
   # 字体与品牌色（官网主色 #ff8000，正文链接受对比度约束取深一档）
   [params.style.vars]
@@ -138,7 +138,7 @@ enableGitInfo = false
 
 [[menus.main]]
   name = "官网"
-  url = "https://www.omaps.cn"
+  url = "https://www.xomaps.com"
   weight = 40
 
 

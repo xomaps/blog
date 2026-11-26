@@ -1,6 +1,6 @@
-# blog.omaps.cn
+# blog.xomaps.com
 
-信朴科技（Xomaps）技术博客。Hugo + Roadster 主题，GitHub Pages 托管，自定义域名 `blog.omaps.cn`。
+信朴科技（Xomaps）技术博客。Hugo + Roadster 主题，GitHub Pages 托管，自定义域名 `blog.xomaps.com`。
 
 ## 结构
 
@@ -31,9 +31,9 @@ hugo server -D                        # 本地预览 http://localhost:1313
 
 ## 域名
 
-- `static/CNAME` = `blog.omaps.cn`，构建时复制进产物。
+- `static/CNAME` = `blog.xomaps.com`，构建时复制进产物。
 - DNS 需一条 `CNAME blog → xomaps.github.io`。
-- GitHub 仓库 Settings → Pages：Source 选 `gh-pages` 分支 / root，Custom domain 填 `blog.omaps.cn`，勾选 Enforce HTTPS。
+- GitHub 仓库 Settings → Pages：Source 选 `gh-pages` 分支 / root，Custom domain 填 `blog.xomaps.com`，勾选 Enforce HTTPS。
 
 ## 依赖
 
