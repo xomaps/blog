@@ -1,0 +1,127 @@
+<!doctype html><html class=no-js lang=zh-cn><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>户外广告空位选点的完整方法链：档期反存在谓词、分组限额与两阶段贪心 - 信朴科技 Xomaps</title><script>(function(e,t){e[t]=e[t].replace("no-js","js")})(document.documentElement,"className")</script><script>(function(e,t){var n,s="roadster-theme";try{n=e.localStorage.getItem(s)}catch{}n!=="dark"&&n!=="light"&&(n=e.matchMedia&&e.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),t.documentElement.setAttribute("data-theme",n)})(window,document)</script><meta name=description content="空位查询不是字段过滤问题：点位是否空闲取决于区间反存在判定，物理分布要求按小区到位置的五级分组限额，点位包优先与排除要落在组粒度，且窗口函数与 ORM 租户过滤器不兼容。本文给出单次检索中同时满足四类语义的方法链与双路执行策略。"><meta property="og:url" content="https://blog.xomaps.com/post/grouped-spot-selection/"><meta property="og:site_name" content="信朴科技 Xomaps"><meta property="og:title" content="户外广告空位选点的完整方法链：档期反存在谓词、分组限额与两阶段贪心"><meta property="og:description" content="空位查询不是字段过滤问题：点位是否空闲取决于区间反存在判定，物理分布要求按小区到位置的五级分组限额，点位包优先与排除要落在组粒度，且窗口函数与 ORM 租户过滤器不兼容。本文给出单次检索中同时满足四类语义的方法链与双路执行策略。"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="post"><meta property="article:published_time" content="2026-11-28T09:00:00+08:00"><meta property="article:modified_time" content="2026-11-28T09:00:00+08:00"><meta property="article:tag" content="空位查询"><meta property="article:tag" content="档期判定"><meta property="article:tag" content="分组选点"><meta property="article:tag" content="查询设计"><meta property="article:tag" content="自然排序"><link rel="shortcut icon" href=/favicon.ico><link rel=alternate hreflang=zh-cn href=https://blog.xomaps.com/post/grouped-spot-selection/><link rel=alternate hreflang=en href=https://blog.xomaps.com/en/post/grouped-spot-selection/><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/v2-styles.css><link rel=stylesheet href=/css/xomaps.min.bf56254bab8abd7b2c86159ca1287efe9b6aee991de8f79210cd7aa5db49480f.css integrity="sha256-v1YlS6uKvXsshhWcoSh+/ptq7pkd6PeSEM16pdtJSA8="><link rel=icon href=/favicon.svg type=image/svg+xml><link rel=apple-touch-icon href=/apple-touch-icon.png><script>var _hmt=_hmt||[];(function(){var e,t=document.createElement("script");t.src="https://hm.baidu.com/hm.js?91d1ed7b8e9f57cc6d6af12e7feed6ed",e=document.getElementsByTagName("script")[0],e.parentNode.insertBefore(t,e)})()</script><script src=/js/xomaps.min.742161de26d883feec086c191d8ca309575ac83d2a95085a7dc4a91038c6cbf4.js defer></script></head><body class=body><div class="container container--outer"><header class=header><div class="container header__container"><div class=logo><a class=logo__link href=/ title="信朴科技 Xomaps" rel=home><div class="logo__item logo__text"><div class=logo__title>信朴科技 Xomaps</div><div class=logo__tagline>AI 原生研发与工程实践</div></div></a></div><nav class=menu><button class=menu__btn aria-haspopup=true aria-expanded=false tabindex=0>
+<span class=menu__btn-title tabindex=-1>菜单</span></button><ul class=menu__list><li class=menu__item><a class=menu__link href=/><span class=menu__text>首页</span></a></li><li class=menu__item><a class=menu__link href=/post/><span class=menu__text>文章</span></a></li><li class=menu__item><a class=menu__link href=/about/><span class=menu__text>关于</span></a></li><li class=menu__item><a class=menu__link href=https://www.xomaps.com><span class=menu__text>官网</span></a></li><li class="menu__item menu__item--lang"><a class=lang-switch__item href=/en/post/grouped-spot-selection/ hreflang=en rel=alternate>English</a></li></ul></nav></div></header><div class="wrapper flex"><div class=primary><main class=main role=main><article class=post><header class=post__header><h1 class=post__title>户外广告空位选点的完整方法链：档期反存在谓词、分组限额与两阶段贪心</h1><div class="post__meta meta"><div class="meta__item-datetime meta__item"><svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0a14 14 0 110 28 1 1 0 010-28m0 3a3 3 0 100 22 3 3 0 000-22m1 4h-2v8.4l6.8 4.4L22 18l-6-3.8z"/></svg><time class=meta__text datetime=2026-11-28T09:00:00+08:00>2026-11-28</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2 1 2h8v11H0V2z"/></svg><span class=meta__text><a class=meta__link href=/categories/%E4%B8%9A%E5%8A%A1%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/ rel=category>业务系统工程</a></span></div><div class="meta__item-wordcount meta__item"><svg class="meta__icon icon icon-wordcount" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 1H3v14h10V4l-3-3zM5 6h6v1.2H5V6zm0 3h6v1.2H5V9zm0 3h4v1.2H5V12z"/></svg>
+<span class=meta__text>共 3114 字 · 阅读约 7 分钟</span></div><div class="meta__item-pageview meta__item"><svg class="meta__icon icon icon-pageview" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 4C4.9 4 2.3 5.6.9 8c1.4 2.4 4 4 7.1 4s5.7-1.6 7.1-4c-1.4-2.4-4-4-7.1-4zM8 5.1c2.6.0 4.8 1.3 5.9 2.9-1.1 1.6-3.3 2.9-5.9 2.9S3.2 9.6 2.1 8C3.2 6.4 5.4 5.1 8 5.1zM8 6.2a1.8 1.8.0 100 3.6 1.8 1.8.0 000-3.6z"/></svg>
+<span class=meta__text><span class=waline-pageview-count data-path=/post/grouped-spot-selection/>0</span> 次浏览</span></div></div></header><div class="content post__content clearfix"><blockquote><p>这是一份检索方法的说明，范围限定在户外媒体点位按投放档期选点这一段链路。文中方法名与步骤号对应一套已落地的实现，业务主体、客户与部署信息均已略去；讨论的是查询语义与执行策略，不涉及报价、合同与排期规则。</p></blockquote><p>先把结论放在前面：<strong>通用分页查询表达不了空位选点的业务语义，需要的是一条由谓词、分组、包级策略三部分串成的方法链</strong>。三点判断放在开头：1）档期空闲是「区间反存在」判定，不是状态字段过滤，且不预计算占用表也能在数据库谓词层完成；2）分组限额为 1 与为 N 是两条不同的执行路径，切换的依据是窗口函数与 ORM 租户过滤器不兼容这一实现约束；3）排除点位包必须按组粒度扩散，逐点排除会留下「同梯同单元重复售点」的业务缺口。</p><h2 id=一四类业务语义与一条实现约束>一、四类业务语义与一条实现约束</h2><h3 id=1档期语义与物理分组语义>1、档期语义与物理分组语义</h3><p>点位是否空闲，取决于「是否存在与投放区间重叠且未下刊的投放明细」。<u>Allen 在 1983 年给出的区间代数把两个时间区间的关系归纳为 13 种，重叠是其中的一类而非一个等值条件</u><sup>[1]</sup>；落到查询上，需要的是反存在子查询（NOT EXISTS），<u>PostgreSQL 文档对 EXISTS / NOT EXISTS 的语义定义正是不关心子查询返回的具体行、只判定是否存在</u><sup>[3]</sup>。用状态字段过滤无法表达「整段区间全程空闲」，人工逐点核对档期则效率低且易漏。</p><p>物理上点位按小区、楼层、单元、电梯、位置逐级组织，业务要求「每个分组最多取 N 个」，避免选出的点位集中在同一部电梯或同一单元。这是分组内的数量约束，不是全局分页能表达的语义。</p><h3 id=2资源组合语义与实现约束>2、资源组合语义与实现约束</h3><p>点位包是方案级的资源集合，选点要支持「优先包含某些包、排除另一些包」。排除的粒度是组而不是单个点位：同一电梯内一个点已售，整梯都不应再选。实现约束来自数据层：在 ORM 租户过滤器自动追加租户条件的前提下，<u>MySQL 窗口函数 <code>ROW_NUMBER() OVER(PARTITION BY ...)</code> 的分组取前 N 写法</u><sup>[2]</sup>与该过滤器不兼容，无法直接作为通用执行路径；<u>Hibernate 的过滤器作用于实体查询</u><sup>[4]</sup>，任何绕开查询层的原生 SQL 都要重新处理租户隔离。</p><table><thead><tr><th>语义类别</th><th>业务要求</th><th>通用分页查询的表达能力</th><th>本文对应步骤</th></tr></thead><tbody><tr><td>档期</td><td>整段区间完全空闲</td><td>无法表达区间反存在</td><td>S1 三态谓词</td></tr><tr><td>物理分组</td><td>五级分组内最多选 N 个</td><td>全局分页，无组内限额</td><td>S2 递进分组键</td></tr><tr><td>资源组合</td><td>包优先、组粒度排除</td><td>无包级与组级概念</td><td>S4 / S5</td></tr><tr><td>实现约束</td><td>窗口函数与租户过滤器兼容</td><td>绕开查询层的原生 SQL 会丢隔离</td><td>S3 双路执行</td></tr></tbody></table><p>四类语义必须落在同一次检索里，否则结果不能直接用于方案与报价；这也是「单次检索」成为设计目标而非优化目标的原因。</p><h2 id=二三态档期谓词与五级递进分组键>二、三态档期谓词与五级递进分组键</h2><h3 id=1反存在谓词与三态派生>1、反存在谓词与三态派生</h3><p>对每个候选点位构造布尔谓词：存在投放明细满足「明细开始日 ≤ 查询结束日 且 明细结束日 ≥ 查询开始日 且 明细结束日 ≥ 当前日期 且 未下刊」时，点位非空闲。以 NOT EXISTS 表达「完全空闲」；改变存在性方向，可以派生「可销售（部分空闲）」与「完全售出」两态，调用方按使用情况枚举选择其一。全部判定在数据库谓词层完成，不预计算占用表，也不把候选点位整批拉进内存再过滤。</p><table><thead><tr><th>使用状态</th><th>谓词方向</th><th>含义</th><th>调用场景</th></tr></thead><tbody><tr><td>完全空闲</td><td>NOT EXISTS(非空闲明细)</td><td>整段档期可用</td><td>新建投放方案的默认条件</td></tr><tr><td>可销售（部分空闲）</td><td>EXISTS(部分区间可用)</td><td>档期可拆分</td><td>补充选点、续投排查</td></tr><tr><td>完全售出</td><td>EXISTS(全区间占用)</td><td>整段被占</td><td>资源盘点与冲突核对</td></tr></tbody></table><p>提交前对选中点位再做一次档期校验，是防止两次操作之间档期被其他方案占用的必要步骤，与检索谓词共用同一套判定，不另立口径。</p><h3 id=2递进式分组键>2、递进式分组键</h3><p>按小区 → 楼层 → 单元 → 电梯 → 位置五级字段构造分组键，并接受调用方给定的每组限额 <code>maxGroupByChoice</code>，约束「同一物理分组内最多选中 N 个点位」。递进式键的意义在于层级可裁剪：调用方指定到单元级时，键就截到单元，限额作用于该粒度；指定到电梯级时，键延伸到电梯。同一份键构造器同时服务于分组限额、组粒度排除与结果排序，保证三处对「同组」的定义完全一致。</p><p>图 1 给出方法链全貌：条件解析后先构造三态档期谓词，再按每组限额是否为 1 分到两条执行路径，汇合后依次执行组粒度排除、两阶段贪心与自然序输出。</p><p><img src=/images/grouped-spot-selection.png alt="图 1 空位选点方法链：档期谓词、分组限额与两阶段贪心"></p><h2 id=三双路执行组粒度排除与两阶段贪心>三、双路执行、组粒度排除与两阶段贪心</h2><h3 id=1以每组限额为分界的双路执行>1、以每组限额为分界的双路执行</h3><table><thead><tr><th>执行路径</th><th>触发条件</th><th>做法</th><th>取舍</th></tr></thead><tbody><tr><td>数据库聚合路</td><td>每组限额 = 1</td><td>分组取点下沉为 <code>GROUP BY</code> 聚合查询，每组返回一条代表点位</td><td>性能最优，单次查询返回</td></tr><tr><td>应用内存分组路</td><td>每组限额 = N（N > 1）</td><td>类型安全的查询构造全量拉取候选，应用内按分组键截断前 N</td><td>兼容租户过滤器，绕开窗口函数</td></tr></tbody></table><p>两路共用同一谓词构造器，档期判定与分组键定义完全一致，切换执行路径不改变结果口径。内存路径在候选量增长时需按分段拉取退化处理，但那是同一方法的不同实施方式，不改变「以限额是否为 1 为分界」这个结构。</p><h3 id=2组粒度排除>2、组粒度排除</h3><p>排除点位包不按点位逐一排除，而是按组粒度扩散：构造与排除包内点位分组键相等的递进式相等谓词，嵌入 NOT EXISTS 子查询，使「与排除包内任一点位同组」的候选全部不可选。逐点排除只排除包内列出的那些点位，同组未列出的点位仍会被选中，落到业务上就是同一电梯里出现两个已售与待售并存的组合；组粒度排除把这条缺口从结果层堵住。</p><h3 id=3优先包两阶段贪心>3、优先包两阶段贪心</h3><p>第一阶段按优先点位包顺序逐包执行全局选点：在每个分组内优先取用当前包内点位，并以组级计数器 <code>groupSelectedCount</code> 跟踪限额防止超组；第一阶段结束后若总数不足需求数，第二阶段从剩余候选点补充至满足需求。两阶段的差别在于「全局优先」而非「分组局部优先」：后者会在每个分组里各自挑一点高优先包点位，结果是高优先包被切碎、剩余名额散落各组；前者先尽可能完整吃掉高优先包，再统一补齐，输出更接近业务上「方案级资源集合」的语义。</p><h2 id=四排序一致性与结果可复现>四、排序一致性与结果可复现</h2><h3 id=1数字感知自然序>1、数字感知自然序</h3><p>分组结果按分组键排序时，比较器逐字符扫描，把连续数字段提取为长整型按数值比较，使「3 栋」排在「14 栋」之前。<u>Unicode 排序算法 UCA 处理的是字符序列的整理规则</u><sup>[5]</sup>，字典序下数字段仍按字符逐个比较，这正是中文楼栋序错乱的来源；客户端采用同款算法，保证前后端看到的顺序一致。</p><h3 id=2三条可验证的技术效果>2、三条可验证的技术效果</h3><p>1）单次查询即返回满足档期与分布策略的点位集合，替代人工逐点核对；2）两条执行路径都与多租户隔离机制共存，切换不改变口径；3）同一输入（日期区间、分组配置、包优先与排除集合）产生确定性输出，配合自然序，结果可直接用于方案与报价。三条效果分别对应效率、隔离与可复现。</p><h3 id=3边界与变体>3、边界与变体</h3><p>分组维度可配置化扩展（如增加商圈、媒体类型）；谓词可扩展「部分空闲且可拆分档期」的检索形态；内存分组路径在候选量超阈值时可退化为分段拉取。需要注意与电商库存锁定、会议室预订冲突检测类方法的区分：区间重叠判定本身是通用技术，本方法的区分特征在于「档期三态 + 五级分组限额 + 包级优先与组粒度排除」这一整套组合语义，以及为兼容租户过滤器而设计的双路执行策略。</p><h2 id=收束>收束</h2><p>空位选点的难点不在单条 SQL 的写法，而在四类业务语义必须同时成立：档期要按区间反存在判定，分组要按五级递进键限额，包级策略要落在组粒度，执行又要与租户过滤器共存。把谓词构造器、分组键与两阶段贪心拆成可复用的三段，再以「每组限额是否为 1」分流到两条执行路径，得到的不是一次查询优化，而是一套结果可复现的选点方法。代价是内存分组路径需要分段拉取与限额裁剪，换来的是语义完整与隔离兼容。</p><h2 id=参考文献>参考文献</h2><ol><li>Allen, J. F. (1983) Maintaining Knowledge about Temporal Intervals（时间区间的 13 种基本关系与重叠判定）. <a href=https://cse.unl.edu/~choueiry/Documents/Allen-CACM1983.pdf>https://cse.unl.edu/~choueiry/Documents/Allen-CACM1983.pdf</a></li><li>MySQL 8.0 Reference Manual · Window Functions（<code>ROW_NUMBER() OVER(PARTITION BY ...)</code> 分组取前 N 的写法与限制）. <a href=https://dev.mysql.com/doc/refman/8.0/en/window-functions.html>https://dev.mysql.com/doc/refman/8.0/en/window-functions.html</a></li><li>PostgreSQL Documentation · Subquery Expressions（EXISTS / NOT EXISTS 的反存在子查询语义）. <a href=https://www.postgresql.org/docs/current/functions-subquery.html>https://www.postgresql.org/docs/current/functions-subquery.html</a></li><li>Hibernate ORM 6.6 User Guide（<code>@Filter</code> 在实体查询上自动追加条件）. <a href=https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html>https://docs.jboss.org/hibernate/orm/6.6/userguide/html_single/Hibernate_User_Guide.html</a></li><li>Unicode Technical Standard #10 · Unicode Collation Algorithm（字符序列整理规则与排序口径）. <a href=https://www.unicode.org/reports/tr10/>https://www.unicode.org/reports/tr10/</a></li></ol></div><footer class=post__footer><div class="post__tags tags clearfix"><svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M4 0h8s2 0 4 2l15 15s2 2 0 4L21 31s-2 2-4 0L2 16s-2-2-2-4V3s0-3 4-3m3 10a3 3 0 000-6 3 3 0 000 6"/></svg><ul class=tags__list><li class=tags__item><a class="tags__link btn" href rel=tag>空位查询</a></li><li class=tags__item><a class="tags__link btn" href rel=tag>档期判定</a></li><li class=tags__item><a class="tags__link btn" href rel=tag>分组选点</a></li><li class=tags__item><a class="tags__link btn" href rel=tag>查询设计</a></li><li class=tags__item><a class="tags__link btn" href rel=tag>自然排序</a></li></ul></div></footer></article></main><nav class="pager flex"><div class="pager__item pager__item--prev"><a class=pager__link href=/post/task-diff-sync/ rel=prev><span class=pager__subtitle>«&#8201;上一篇</span><p class=pager__title>派单任务的差分同步与状态收敛：集合求差、数据事实准绳与三向兜底</p></a></div><div class="pager__item pager__item--next"><a class=pager__link href=/post/tenant-isolation-read-gate/ rel=next><span class=pager__subtitle>下一篇&#8201;»</span><p class=pager__title>多租户数据隔离的读闸：持久化生命周期回调与切面时序</p></a></div></nav><section class=comments><div id=waline class=waline-container></div></section></div><aside class=sidebar><div class="widget-toc widget"><h4 class=widget__title>目录</h4><div class="widget__content widget-toc__menu"><nav id=TableOfContents><ul><li><a href=#一四类业务语义与一条实现约束>一、四类业务语义与一条实现约束</a><ul><li><a href=#1档期语义与物理分组语义>1、档期语义与物理分组语义</a></li><li><a href=#2资源组合语义与实现约束>2、资源组合语义与实现约束</a></li></ul></li><li><a href=#二三态档期谓词与五级递进分组键>二、三态档期谓词与五级递进分组键</a><ul><li><a href=#1反存在谓词与三态派生>1、反存在谓词与三态派生</a></li><li><a href=#2递进式分组键>2、递进式分组键</a></li></ul></li><li><a href=#三双路执行组粒度排除与两阶段贪心>三、双路执行、组粒度排除与两阶段贪心</a><ul><li><a href=#1以每组限额为分界的双路执行>1、以每组限额为分界的双路执行</a></li><li><a href=#2组粒度排除>2、组粒度排除</a></li><li><a href=#3优先包两阶段贪心>3、优先包两阶段贪心</a></li></ul></li><li><a href=#四排序一致性与结果可复现>四、排序一致性与结果可复现</a><ul><li><a href=#1数字感知自然序>1、数字感知自然序</a></li><li><a href=#2三条可验证的技术效果>2、三条可验证的技术效果</a></li><li><a href=#3边界与变体>3、边界与变体</a></li></ul></li><li><a href=#收束>收束</a></li><li><a href=#参考文献>参考文献</a></li></ul></nav></div></div><div class="widget-recent widget"><h4 class=widget__title>近期文章</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/post/low-cost-static-site-five-steps/>小成本官网的五步路径：自建服务器、Hugo、GitHub Pages、Cloudflare Pages 与百度收录</a></li><li class=widget__item><a class=widget__link href=/post/tenant-isolation-read-gate/>多租户数据隔离的读闸：持久化生命周期回调与切面时序</a></li><li class=widget__item><a class=widget__link href=/post/grouped-spot-selection/>户外广告空位选点的完整方法链：档期反存在谓词、分组限额与两阶段贪心</a></li><li class=widget__item><a class=widget__link href=/post/task-diff-sync/>派单任务的差分同步与状态收敛：集合求差、数据事实准绳与三向兜底</a></li><li class=widget__item><a class=widget__link href=/post/meta-tool-gateway/>企业开放接口的大模型元工具收敛与串联调用防护链</a></li></ul></div></div><div class="widget-categories widget"><h4 class=widget__title>分类</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/categories/ai-%E5%8E%9F%E7%94%9F%E7%A0%94%E5%8F%91/>AI 原生研发</a></li><li class=widget__item><a class=widget__link href=/categories/%E4%B8%9A%E5%8A%A1%E7%B3%BB%E7%BB%9F%E5%B7%A5%E7%A8%8B/>业务系统工程</a></li><li class=widget__item><a class=widget__link href=/categories/%E4%BC%81%E4%B8%9A-ai-%E8%90%BD%E5%9C%B0/>企业 AI 落地</a></li><li class=widget__item><a class=widget__link href=/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/>工程实践</a></li><li class=widget__item><a class=widget__link href=/categories/%E6%9E%B6%E6%9E%84%E4%B8%8E%E5%AE%89%E5%85%A8/>架构与安全</a></li></ul></div></div><div class="widget-taglist widget"><h4 class=widget__title>标签</h4><div class=widget__content><a class="widget-taglist__link widget__link btn" href=/tags/agent/ title=Agent>Agent</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/agent-%E5%AE%89%E5%85%A8/ title="Agent 安全">Agent 安全</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ai/ title=AI>AI</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ai-%E7%BC%96%E7%A8%8B/ title="AI 编程">AI 编程</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ai-%E5%88%86%E8%BA%AB/ title="AI 分身">AI 分身</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ai-%E5%BA%94%E7%94%A8/ title="AI 应用">AI 应用</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ai-%E5%8E%9F%E7%94%9F/ title="AI 原生">AI 原生</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/api-%E6%B2%BB%E7%90%86/ title="API 治理">API 治理</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/bpm/ title=BPM>BPM</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/cloudflare-pages/ title="Cloudflare Pages">Cloudflare Pages</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/exif/ title=EXIF>EXIF</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/github-pages/ title="GitHub Pages">GitHub Pages</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/hugo/ title=Hugo>Hugo</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/it%E6%89%98%E7%AE%A1/ title=IT托管>IT托管</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/jpa/ title=JPA>JPA</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/mcp/ title=MCP>MCP</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/msp/ title=MSP>MSP</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/rest/ title=REST>REST</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/sdlc/ title=SDLC>SDLC</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/seo/ title=SEO>SEO</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%AE%89%E5%85%A8%E8%BE%B9%E7%95%8C/ title=安全边界>安全边界</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%A1%88%E4%BE%8B%E5%88%86%E4%BA%AB/ title=案例分享>案例分享</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%9F%A5%E8%AF%A2%E8%AE%BE%E8%AE%A1/ title=查询设计>查询设计</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%B7%AE%E5%88%86%E6%9B%B4%E6%96%B0/ title=差分更新>差分更新</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%A1%A3%E6%9C%9F%E5%88%A4%E5%AE%9A/ title=档期判定>档期判定</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/ title=定时任务>定时任务</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%BA%A6%E9%87%8F/ title=度量>度量</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%A4%9A%E7%A7%9F%E6%88%B7/ title=多租户>多租户</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%88%86%E7%BB%84%E9%80%89%E7%82%B9/ title=分组选点>分组选点</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%B7%A5%E7%A8%8B%E7%AE%A1%E7%90%86/ title=工程管理>工程管理</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%B7%A5%E7%A8%8B%E6%95%88%E8%83%BD/ title=工程效能>工程效能</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8/ title=工具调用>工具调用</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%BB%BA%E7%AB%99/ title=建站>建站</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E9%89%B4%E6%9D%83%E8%AE%BE%E8%AE%A1/ title=鉴权设计>鉴权设计</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E9%9D%99%E6%80%81%E7%AB%99%E7%82%B9/ title=静态站点>静态站点</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%A9%BA%E4%BD%8D%E6%9F%A5%E8%AF%A2/ title=空位查询>空位查询</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%B5%81%E7%A8%8B%E6%94%B9%E9%80%A0/ title=流程改造>流程改造</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%B5%81%E7%A8%8B%E5%BC%95%E6%93%8E/ title=流程引擎>流程引擎</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%B5%81%E7%A8%8B%E8%87%AA%E5%8A%A8%E5%8C%96/ title=流程自动化>流程自动化</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%90%BD%E5%9C%B0%E8%B7%AF%E5%BE%84/ title=落地路径>落地路径</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E9%97%A8%E7%A6%81%E8%AE%BE%E8%AE%A1/ title=门禁设计>门禁设计</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%B9%B4%E5%BA%A6%E8%A7%84%E5%88%92/ title=年度规划>年度规划</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E9%85%8D%E7%BD%AE%E5%8C%96/ title=配置化>配置化</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%89%B9%E9%87%8F%E5%A4%84%E7%90%86/ title=批量处理>批量处理</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E4%BC%81%E4%B8%9A-ai/ title="企业 AI">企业 AI</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%88%87%E9%9D%A2%E8%AE%BE%E8%AE%A1/ title=切面设计>切面设计</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%85%A8%E6%81%AF%E9%87%87%E9%9B%86/ title=全息采集>全息采集</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%9D%83%E9%99%90%E8%AE%BE%E8%AE%A1/ title=权限设计>权限设计</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E4%BB%BB%E5%8A%A1%E5%90%8C%E6%AD%A5/ title=任务同步>任务同步</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B/ title=上下文工程>上下文工程</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%95%B0%E6%8D%AE%E9%9A%94%E7%A6%BB/ title=数据隔离>数据隔离</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%95%B0%E6%8D%AE%E8%84%B1%E6%95%8F/ title=数据脱敏>数据脱敏</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%95%B0%E5%AD%97%E5%91%98%E5%B7%A5/ title=数字员工>数字员工</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%B0%B4%E5%8D%B0/ title=水印>水印</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%8E%A2%E8%AE%A8/ title=探讨>探讨</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/ title=图像处理>图像处理</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%BD%91%E7%BB%9C%E6%8E%92%E9%9A%9C/ title=网络排障>网络排障</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%A8%81%E8%83%81%E5%BB%BA%E6%A8%A1/ title=威胁建模>威胁建模</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%B3%BB%E7%BB%9F%E6%8E%A5%E5%85%A5/ title=系统接入>系统接入</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1/ title=协议设计>协议设计</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90/ title=需求分析>需求分析</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%AF%AD%E9%9F%B3%E5%8A%9E%E5%85%AC/ title=语音办公>语音办公</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E5%85%83%E6%95%B0%E6%8D%AE/ title=元数据>元数据</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%B6%8A%E6%9D%83%E9%98%B2%E6%8A%A4/ title=越权防护>越权防护</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%BD%BD%E4%BD%93%E5%8D%87%E7%BA%A7/ title=载体升级>载体升级</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%B2%BB%E7%90%86/ title=治理>治理</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%99%BA%E8%83%BD%E4%BD%93/ title=智能体>智能体</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E4%B8%AD%E5%B0%8F%E4%BC%81%E4%B8%9A/ title=中小企业>中小企业</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/ title=状态机>状态机</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%87%AA%E7%84%B6%E6%8E%92%E5%BA%8F/ title=自然排序>自然排序</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%BB%84%E7%BB%87%E8%83%BD%E5%8A%9B/ title=组织能力>组织能力</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4/ title=最终一致>最终一致</a></div></div></aside></div><footer class=footer><div class="container footer__container flex"><div class=footer__links><a class=footer__link href=https://www.xomaps.com>公司官网 www.xomaps.com</a> | <a class=footer__link href=https://github.com/xomaps>GitHub</a></div><div class=footer__copyright>&copy; 2026 信朴科技（Xomaps）.
+<span class=footer__copyright-credits>基于 <a href=https://gohugo.io/ rel="nofollow noopener" target=_blank>Hugo</a> 引擎和 <a href=https://github.com/mansoorbarri/roadster/ rel="nofollow noopener" target=_blank>Roadster</a> 主题</span></div></div></footer><link rel=stylesheet href=/waline/waline.css><script type=module>
+import { init, pageviewCount } from '\/waline\/waline.js';
+
+const serverURL = 'https:\/\/waline.xomaps.com';
+const path = window.location.pathname;
+
+
+const degrade = () => {
+	document.querySelectorAll('.meta__item-pageview').forEach((el) => el.remove());
+	document.querySelectorAll('.comments').forEach((el) => el.remove());
+};
+
+
+const timeoutSignal = (ms) => {
+	const c = new AbortController();
+	setTimeout(() => c.abort(), ms);
+	return c.signal;
+};
+
+
+fetch(serverURL + '/api/comment?path=' + encodeURIComponent(path) + '&pageSize=1&page=1', {
+	signal: timeoutSignal(5000),
+})
+	.then((resp) => {
+		if (!resp.ok) throw new Error('waline server responded ' + resp.status);
+		
+		pageviewCount({ serverURL, path });
+		init({
+			el: '#waline',
+			serverURL,
+			path,
+			
+			
+			lang: 'zh-CN',
+			
+			login: 'disable',
+			meta: ['nick'],
+			requiredMeta: ['nick'],
+			placeholder: '写下你的评论（经审核通过后才会显示）',
+			
+			noCopyright: true,
+			
+			emoji: false,
+			search: false,
+			reaction: false,
+		});
+	})
+	.catch(degrade);
+</script></div><button class=theme-toggle type=button aria-label="Switch to dark theme" title="Switch to dark theme">
+<span class=theme-toggle__label>Theme</span>
+</button>
+<script async defer src=/js/menu.js></script></body></html>

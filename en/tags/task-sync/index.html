@@ -1,0 +1,108 @@
+<!doctype html><html class=no-js lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Task Sync - Xomaps Tech Blog</title><script>(function(e,t){e[t]=e[t].replace("no-js","js")})(document.documentElement,"className")</script><script>(function(e,t){var n,s="roadster-theme";try{n=e.localStorage.getItem(s)}catch{}n!=="dark"&&n!=="light"&&(n=e.matchMedia&&e.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),t.documentElement.setAttribute("data-theme",n)})(window,document)</script><meta name=description content><meta property="og:url" content="https://blog.xomaps.com/en/tags/task-sync/"><meta property="og:site_name" content="Xomaps Tech Blog"><meta property="og:title" content="Task Sync"><meta property="og:description" content="Xomaps team engineering blog: outdoor-advertising spot management, multi-tenant platform, API governance and engineering practice."><meta property="og:locale" content="en"><meta property="og:type" content="website"><link rel=alternate type=application/rss+xml href=/en/tags/task-sync/index.xml title="Xomaps Tech Blog"><link rel="shortcut icon" href=/favicon.ico><link rel=alternate hreflang=en href=https://blog.xomaps.com/en/tags/task-sync/><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/v2-styles.css><link rel=stylesheet href=/css/xomaps.min.bf56254bab8abd7b2c86159ca1287efe9b6aee991de8f79210cd7aa5db49480f.css integrity="sha256-v1YlS6uKvXsshhWcoSh+/ptq7pkd6PeSEM16pdtJSA8="><link rel=icon href=/favicon.svg type=image/svg+xml><link rel=apple-touch-icon href=/apple-touch-icon.png><script>var _hmt=_hmt||[];(function(){var e,t=document.createElement("script");t.src="https://hm.baidu.com/hm.js?91d1ed7b8e9f57cc6d6af12e7feed6ed",e=document.getElementsByTagName("script")[0],e.parentNode.insertBefore(t,e)})()</script><script src=/js/xomaps.min.742161de26d883feec086c191d8ca309575ac83d2a95085a7dc4a91038c6cbf4.js defer></script></head><body class=body><div class="container container--outer"><header class=header><div class="container header__container"><div class=logo><a class=logo__link href=/en/ title="Xomaps Tech Blog" rel=home><div class="logo__item logo__text"><div class=logo__title>Xomaps Tech Blog</div><div class=logo__tagline>AI-Native Engineering & Practice</div></div></a></div><nav class=menu><button class=menu__btn aria-haspopup=true aria-expanded=false tabindex=0>
+<span class=menu__btn-title tabindex=-1>Menu</span></button><ul class=menu__list><li class=menu__item><a class=menu__link href=/en/><span class=menu__text>Home</span></a></li><li class=menu__item><a class=menu__link href=/en/post/><span class=menu__text>Posts</span></a></li><li class=menu__item><a class=menu__link href=/en/about/><span class=menu__text>About</span></a></li><li class=menu__item><a class=menu__link href=https://www.xomaps.com><span class=menu__text>Website</span></a></li><li class="menu__item menu__item--lang"><a class=lang-switch__item href=/ hreflang=zh-cn rel=alternate>中文</a></li></ul></nav></div></header><div class="wrapper flex"><div class=primary><main class="main list" role=main><header class=main__header><h1 class=main__title>Task Sync</h1></header><article class="list__item post"><header class=list__header><h2 class="list__title post__title"><a href=/en/post/task-diff-sync/ rel=bookmark>Differential Sync and State Convergence for Fieldwork Tasks: Set Difference, Data-Fact Ground Truth, and Three-Way Fallbacks</a></h2><div class="list__meta meta"><div class="meta__item-datetime meta__item"><svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0a14 14 0 110 28 1 1 0 010-28m0 3a3 3 0 100 22 3 3 0 000-22m1 4h-2v8.4l6.8 4.4L22 18l-6-3.8z"/></svg><time class=meta__text datetime=2026-11-28T09:00:00+08:00>2026-11-28</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2 1 2h8v11H0V2z"/></svg><span class=meta__text><a class=meta__link href=/en/categories/business-systems-engineering/ rel=category>Business Systems Engineering</a></span></div><div class="meta__item-wordcount meta__item"><svg class="meta__icon icon icon-wordcount" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 1H3v14h10V4l-3-3zM5 6h6v1.2H5V6zm0 3h6v1.2H5V9zm0 3h4v1.2H5V12z"/></svg>
+<span class=meta__text>1426 words · ~7 min read</span></div><div class="meta__item-pageview meta__item"><svg class="meta__icon icon icon-pageview" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 4C4.9 4 2.3 5.6.9 8c1.4 2.4 4 4 7.1 4s5.7-1.6 7.1-4c-1.4-2.4-4-4-7.1-4zM8 5.1c2.6.0 4.8 1.3 5.9 2.9-1.1 1.6-3.3 2.9-5.9 2.9S3.2 9.6 2.1 8C3.2 6.4 5.4 5.1 8 5.1zM8 6.2a1.8 1.8.0 100 3.6 1.8 1.8.0 000-3.6z"/></svg>
+<span class=meta__text><span class=waline-pageview-count data-path=/en/post/task-diff-sync/>0</span> views</span></div></div></header><div class="content list__excerpt post__content clearfix"><blockquote><p>This is a task-consistency note, scoped to spot tasks and real-scene tasks in media-delivery fieldwork. Method names and step numbers correspond to a working implementation; organization, customer, and deployment details are omitted. The subject is maintaining the task set and deciding task state, not crew scheduling or performance evaluation.</p></blockquote><p>The conclusion first: <strong>task state should be decided by data facts, not event order; the task set should be reconciled by set difference, not rebuilt wholesale on range changes.</strong> Three judgments up front: 1) the cost of delete-and-rebuild is not performance but losing photo associations, completion progress, and assignees attached to existing tasks — no rework for field crews is a hard constraint; 2) upload success, photo deletion, and manual marking inevitably arrive out of order, duplicated, or missing in a distributed setting, and an event-driven state machine freezes those disturbances into state; 3) once successful image count versus photo requirement is the ground truth, convergence needs no event history, and three complementary scheduled fallbacks cover every direction of deviation.</p></div><div class="list__footer clearfix"><a class="list__footer-readmore btn" href=/en/post/task-diff-sync/>Read more…</a></div></article></main></div><aside class=sidebar><div class="widget-recent widget"><h4 class=widget__title>Recent Posts</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/en/post/low-cost-static-site-five-steps/>A Five-Step Path to a Low-Cost Website: Self-Hosted Server, Hugo, GitHub Pages, Cloudflare Pages, and Baidu Indexing</a></li><li class=widget__item><a class=widget__link href=/en/post/grouped-spot-selection/>A Complete Method Chain for Outdoor-Ad Spot Selection: Anti-Existence Scheduling Predicates, Grouped Quotas, and Two-Phase Greedy Selection</a></li><li class=widget__item><a class=widget__link href=/en/post/exif-watermark-pipeline/>A Metadata-Preserving Watermark Pipeline for Evidence Photos: Pre-Extraction, Orientation Awareness, Rewrite-Back, and Three-Level Fallback</a></li><li class=widget__item><a class=widget__link href=/en/post/task-diff-sync/>Differential Sync and State Convergence for Fieldwork Tasks: Set Difference, Data-Fact Ground Truth, and Three-Way Fallbacks</a></li><li class=widget__item><a class=widget__link href=/en/post/meta-tool-gateway/>Meta-Tool Convergence for Enterprise APIs and a Chained LLM Call Defense Line</a></li></ul></div></div><div class="widget-categories widget"><h4 class=widget__title>Categories</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/en/categories/ai-native-engineering/>AI-Native Engineering</a></li><li class=widget__item><a class=widget__link href=/en/categories/architecture--security/>Architecture & Security</a></li><li class=widget__item><a class=widget__link href=/en/categories/business-systems-engineering/>Business Systems Engineering</a></li><li class=widget__item><a class=widget__link href=/en/categories/engineering-practice/>Engineering Practice</a></li><li class=widget__item><a class=widget__link href=/en/categories/enterprise-ai-adoption/>Enterprise AI Adoption</a></li></ul></div></div><div class="widget-taglist widget"><h4 class=widget__title>Tags</h4><div class=widget__content><a class="widget-taglist__link widget__link btn" href=/en/tags/adoption-path/ title="Adoption Path">Adoption Path</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/agent/ title=Agent>Agent</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/agent-security/ title="Agent Security">Agent Security</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ai/ title=AI>AI</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ai-agent/ title="AI Agent">AI Agent</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ai-applications/ title="AI Applications">AI Applications</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ai-avatar/ title="AI Avatar">AI Avatar</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ai-coding/ title="AI Coding">AI Coding</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ai-native/ title=AI-Native>AI-Native</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/ambient-capture/ title="Ambient Capture">Ambient Capture</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/annual-planning/ title="Annual Planning">Annual Planning</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/aop/ title=AOP>AOP</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/api-governance/ title="API Governance">API Governance</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/authn/authz/ title=AuthN/AuthZ>AuthN/AuthZ</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/authorization/ title=Authorization>Authorization</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/availability-query/ title="Availability Query">Availability Query</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/batch-processing/ title="Batch Processing">Batch Processing</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/bpm/ title=BPM>BPM</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/carrier-evolution/ title="Carrier Evolution">Carrier Evolution</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/case-study/ title="Case Study">Case Study</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/cloudflare-pages/ title="Cloudflare Pages">Cloudflare Pages</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/configuration-driven/ title=Configuration-Driven>Configuration-Driven</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/context-engineering/ title="Context Engineering">Context Engineering</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/data-isolation/ title="Data Isolation">Data Isolation</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/data-masking/ title="Data Masking">Data Masking</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/differential-update/ title="Differential Update">Differential Update</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/digital-worker/ title="Digital Worker">Digital Worker</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/engineering-management/ title="Engineering Management">Engineering Management</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/engineering-productivity/ title="Engineering Productivity">Engineering Productivity</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/enterprise-ai/ title="Enterprise AI">Enterprise AI</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/essay/ title=Essay>Essay</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/eventual-consistency/ title="Eventual Consistency">Eventual Consistency</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/exif/ title=EXIF>EXIF</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/gate-design/ title="Gate Design">Gate Design</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/github-pages/ title="GitHub Pages">GitHub Pages</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/governance/ title=Governance>Governance</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/grouped-selection/ title="Grouped Selection">Grouped Selection</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/hugo/ title=Hugo>Hugo</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/image-processing/ title="Image Processing">Image Processing</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/interval-logic/ title="Interval Logic">Interval Logic</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/jpa/ title=JPA>JPA</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/managed-it/ title="Managed IT">Managed IT</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/mcp/ title=MCP>MCP</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/metadata/ title=Metadata>Metadata</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/metrics/ title=Metrics>Metrics</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/msp/ title=MSP>MSP</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/multi-tenancy/ title=Multi-Tenancy>Multi-Tenancy</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/natural-sort/ title="Natural Sort">Natural Sort</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/network-troubleshooting/ title="Network Troubleshooting">Network Troubleshooting</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/organizational-capability/ title="Organizational Capability">Organizational Capability</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/permission-design/ title="Permission Design">Permission Design</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/process-automation/ title="Process Automation">Process Automation</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/process-engine/ title="Process Engine">Process Engine</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/process-engineering/ title="Process Engineering">Process Engineering</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/protocol-design/ title="Protocol Design">Protocol Design</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/query-design/ title="Query Design">Query Design</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/requirements-analysis/ title="Requirements Analysis">Requirements Analysis</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/rest/ title=REST>REST</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/scheduled-jobs/ title="Scheduled Jobs">Scheduled Jobs</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/sdlc/ title=SDLC>SDLC</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/security-boundary/ title="Security Boundary">Security Boundary</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/seo/ title=SEO>SEO</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/smb/ title=SMB>SMB</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/state-machine/ title="State Machine">State Machine</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/static-site/ title="Static Site">Static Site</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/system-integration/ title="System Integration">System Integration</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/task-sync/ title="Task Sync">Task Sync</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/threat-modeling/ title="Threat Modeling">Threat Modeling</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/tool-calling/ title="Tool Calling">Tool Calling</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/voice-first-office/ title="Voice-First Office">Voice-First Office</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/watermark/ title=Watermark>Watermark</a>
+<a class="widget-taglist__link widget__link btn" href=/en/tags/web-hosting/ title="Web Hosting">Web Hosting</a></div></div></aside></div><footer class=footer><div class="container footer__container flex"><div class=footer__links><a class=footer__link href=https://www.xomaps.com>Website www.xomaps.com</a> | <a class=footer__link href=https://github.com/xomaps>GitHub</a></div><div class=footer__copyright>&copy; 2026 信朴科技（Xomaps）.
+<span class=footer__copyright-credits>Generated with <a href=https://gohugo.io/ rel="nofollow noopener" target=_blank>Hugo</a> and <a href=https://github.com/mansoorbarri/roadster/ rel="nofollow noopener" target=_blank>Roadster</a> theme.</span></div></div></footer><script type=module>
+import { init, pageviewCount } from '\/waline\/waline.js';
+
+const serverURL = 'https:\/\/waline.xomaps.com';
+const path = window.location.pathname;
+
+
+const degrade = () => {
+	document.querySelectorAll('.meta__item-pageview').forEach((el) => el.remove());
+	document.querySelectorAll('.comments').forEach((el) => el.remove());
+};
+
+
+const timeoutSignal = (ms) => {
+	const c = new AbortController();
+	setTimeout(() => c.abort(), ms);
+	return c.signal;
+};
+
+
+fetch(serverURL + '/api/comment?path=' + encodeURIComponent(path) + '&pageSize=1&page=1', {
+	signal: timeoutSignal(5000),
+})
+	.then((resp) => {
+		if (!resp.ok) throw new Error('waline server responded ' + resp.status);
+		
+		pageviewCount({ serverURL, path });
+	})
+	.catch(degrade);
+</script></div><button class=theme-toggle type=button aria-label="Switch to dark theme" title="Switch to dark theme">
+<span class=theme-toggle__label>Theme</span>
+</button>
+<script async defer src=/js/menu.js></script></body></html>
